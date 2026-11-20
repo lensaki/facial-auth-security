@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+PORT = 5005
+
 model = Path(__file__).with_name("yunet.onnx")
 detector = cv2.FaceDetectorYN.create(
     str(model), "", (320, 320), 0.9
@@ -12,7 +14,7 @@ detector = cv2.FaceDetectorYN.create(
 
 # Receive our local messages so the destination port is open.
 receiver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-receiver.bind(("127.0.0.1", 5005))
+receiver.bind(("127.0.0.1", PORT))
 receiver.settimeout(1)
 
 sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -49,9 +51,12 @@ try:
 
                 message = json.dumps(event)
                 sender.sendto(
-                    message.encode("utf-8"), ("127.0.0.1", 5005)
+                    message.encode("utf-8"), ("127.0.0.1", PORT)
                 )
-                receiver.recvfrom(65535)
+                try:
+                    receiver.recvfrom(65535)
+                except socket.timeout:
+                    print("Local receiver timed out; check capture.")
                 print(message)
 
             face_present = True

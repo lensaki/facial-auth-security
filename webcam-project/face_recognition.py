@@ -7,7 +7,9 @@ from datetime import datetime
 from pathlib import Path
 
 folder = Path(__file__).resolve().parent
-THRESHOLD = 0.30
+# OpenCV SFace reference threshold for cosine similarity.
+THRESHOLD = 0.363
+PORT = 5006
 
 detector = cv2.FaceDetectorYN.create(
     str(folder / "yunet.onnx"), "", (320, 320), 0.9
@@ -28,7 +30,7 @@ if not enrolled:
 print("Enrolled people:", ", ".join(enrolled))
 
 receiver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-receiver.bind(("127.0.0.1", 5005))
+receiver.bind(("127.0.0.1", PORT))
 receiver.settimeout(1)
 
 sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -130,7 +132,7 @@ try:
 
                 message = json.dumps(event)
                 sender.sendto(
-                    message.encode("utf-8"), ("127.0.0.1", 5005)
+                    message.encode("utf-8"), ("127.0.0.1", PORT)
                 )
 
                 try:

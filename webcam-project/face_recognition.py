@@ -7,18 +7,20 @@ from datetime import datetime
 from pathlib import Path
 
 folder = Path(__file__).resolve().parent
+models = folder / "models"
+faces_folder = folder / "faces"
 THRESHOLD = 0.30
 
 detector = cv2.FaceDetectorYN.create(
-    str(folder / "yunet.onnx"), "", (320, 320), 0.9
+    str(models / "yunet.onnx"), "", (320, 320), 0.9
 )
 recognizer = cv2.FaceRecognizerSF.create(
-    str(folder / "sface.onnx"), ""
+    str(models / "sface.onnx"), ""
 )
 
 # Example: elijah_face.npy becomes the name "elijah".
 enrolled = {}
-for path in sorted(folder.glob("*_face.npy")):
+for path in sorted(faces_folder.glob("*_face.npy")):
     name = path.stem.removesuffix("_face").replace("_", " ").title()
     enrolled[name] = np.load(path, allow_pickle=False)
 

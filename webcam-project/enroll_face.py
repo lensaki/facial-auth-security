@@ -3,12 +3,13 @@ import numpy as np
 from pathlib import Path
 
 folder = Path(__file__).resolve().parent
+models = folder / "models"
 
 detector = cv2.FaceDetectorYN.create(
-    str(folder / "yunet.onnx"), "", (320, 320), 0.9
+    str(models / "yunet.onnx"), "", (320, 320), 0.9
 )
 recognizer = cv2.FaceRecognizerSF.create(
-    str(folder / "sface.onnx"), ""
+    str(models / "sface.onnx"), ""
 )
 
 camera = cv2.VideoCapture(0)
@@ -52,7 +53,9 @@ try:
         if key == ord("s") and count == 1:
             aligned = recognizer.alignCrop(frame, faces[0])
             features = recognizer.feature(aligned)
-            destination = folder / "Len_face.npy"
+            faces_folder = folder / "faces"
+            faces_folder.mkdir(parents=True, exist_ok=True)
+            destination = faces_folder / "Len_face.npy"
             np.save(destination, features)
             print(f"Face enrolled! Saved to: {destination}")
             break

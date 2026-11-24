@@ -16,6 +16,8 @@ import numpy as np
 from PIL import Image, ImageTk
 
 BASE = Path(__file__).resolve().parent
+MODELS = BASE / "models"
+FACES = BASE / "faces"
 THRESHOLD = 0.30
 UDP_ADDRESS = ("127.0.0.1", 5005)
 
@@ -26,8 +28,8 @@ class FaceGUI:
         root.title("Facial Authentication & Network Logging")
         root.geometry("1100x790")
         root.minsize(860, 650)
-        self.detector = cv2.FaceDetectorYN.create(str(BASE / "yunet.onnx"), "", (320, 320), 0.9)
-        self.recognizer = cv2.FaceRecognizerSF.create(str(BASE / "sface.onnx"), "")
+        self.detector = cv2.FaceDetectorYN.create(str(MODELS / "yunet.onnx"), "", (320, 320), 0.9)
+        self.recognizer = cv2.FaceRecognizerSF.create(str(MODELS / "sface.onnx"), "")
         self.enrolled = {}
         self.load_faces()
         self.cap = None
@@ -90,7 +92,7 @@ class FaceGUI:
 
     def load_faces(self):
         self.enrolled.clear()
-        for path in sorted(BASE.glob("*_face.npy")):
+        for path in sorted(FACES.glob("*_face.npy")):
             name = path.stem.removesuffix("_face").replace("_", " ").title()
             self.enrolled[name] = np.load(path, allow_pickle=False)
 
@@ -145,10 +147,11 @@ class FaceGUI:
             messagebox.showwarning("Name", "Enter a name using letters, numbers, spaces, _ or - (max 50 chars).")
             return
         filename = re.sub(r"[ -]+", "_", name).strip("_") + "_face.npy"
-        target = BASE / filename
+        target = FACES / filename
         if target.exists() and not messagebox.askyesno("Overwrite", f"Replace enrollment for {name}?"):
             return
         try:
+            FACES.mkdir(parents=True, exist_ok=True)
             aligned = self.recognizer.alignCrop(self.frame, self.faces[0])
             features = self.recognizer.feature(aligned)
             np.save(target, features)

@@ -11,6 +11,7 @@ current files that i totally made here
 ## Which script to use
 
 - `main_gui.py` is the primary app. It combines enrollment, recognition, and optional UDP event logging.
+- `main_gui_account.py` is a WIP of the `main_gui.py` app, including a login for admin and also account creation. 
 - `enroll_face.py` is a small standalone enrollment demo. Its enrollment flow overlaps with the GUI.
 - `face_recognition.py` is a standalone recognition window with manual UDP event logging. It overlaps with the GUI's recognition mode.
 - `face_detection.py` is a separate detection-only demo that emits a face-present event; it does not identify people.

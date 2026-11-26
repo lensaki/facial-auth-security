@@ -12,15 +12,15 @@ THRESHOLD = 0.363
 PORT = 5006
 
 detector = cv2.FaceDetectorYN.create(
-    str(folder / "yunet.onnx"), "", (320, 320), 0.9
+    str(folder / "models" / "yunet.onnx"), "", (320, 320), 0.9
 )
 recognizer = cv2.FaceRecognizerSF.create(
-    str(folder / "sface.onnx"), ""
+    str(folder / "models" / "sface.onnx"), ""
 )
 
 # Example: elijah_face.npy becomes the name "elijah".
 enrolled = {}
-for path in sorted(folder.glob("*_face.npy")):
+for path in sorted((folder / "faces").glob("*_face.npy")):
     name = path.stem.removesuffix("_face").replace("_", " ").title()
     enrolled[name] = np.load(path, allow_pickle=False)
 

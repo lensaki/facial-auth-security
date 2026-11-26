@@ -16,9 +16,9 @@ import numpy as np
 from PIL import Image, ImageTk
 
 BASE = Path(__file__).resolve().parent
-# Models and enrolled faces live in webcam-project/ (shared with face_recognition.py);
-# fall back to BASE if this file has been moved into that folder.
-DATA_DIR = BASE / "webcam-project" if (BASE / "webcam-project" / "yunet.onnx").is_file() else BASE
+# Models live in models/ and enrolled faces in faces/ (shared with face_recognition.py).
+MODELS = BASE / "models"
+FACES = BASE / "faces"
 THRESHOLD = 0.363  # OpenCV's SFace reference cosine threshold (matches webcam-project/face_recognition.py)
 UDP_PORT = 5006  # recognition events; face_detection.py uses 5005
 UDP_ADDRESS = ("127.0.0.1", UDP_PORT)
@@ -61,10 +61,10 @@ class FaceGUI:
         root.minsize(1000, 700)
         root.configure(bg=BG)
         for model in ("yunet.onnx", "sface.onnx"):
-            if not (DATA_DIR / model).is_file():
-                raise FileNotFoundError(f"Missing {model}; looked in folder: {DATA_DIR}")
-        self.detector = cv2.FaceDetectorYN.create(str(DATA_DIR / "yunet.onnx"), "", (320, 320), 0.9)
-        self.recognizer = cv2.FaceRecognizerSF.create(str(DATA_DIR / "sface.onnx"), "")
+            if not (MODELS / model).is_file():
+                raise FileNotFoundError(f"Missing {model}; looked in folder: {MODELS}")
+        self.detector = cv2.FaceDetectorYN.create(str(MODELS / "yunet.onnx"), "", (320, 320), 0.9)
+        self.recognizer = cv2.FaceRecognizerSF.create(str(MODELS / "sface.onnx"), "")
         self.enrolled = {}
         self.load_faces()
         self.cap = None
@@ -336,7 +336,7 @@ class FaceGUI:
 
     def load_faces(self):
         self.enrolled.clear()
-        for path in sorted(DATA_DIR.glob("*_face.npy")):
+        for path in sorted(FACES.glob("*_face.npy")):
             name = path.stem.removesuffix("_face").replace("_", " ").title()
             self.enrolled[name] = np.load(path, allow_pickle=False)
 
@@ -401,12 +401,13 @@ class FaceGUI:
             messagebox.showwarning("Name", "Enter a name using letters, numbers, spaces, _ or - (max 50 chars).")
             return
         filename = re.sub(r"[ -]+", "_", name).strip("_") + "_face.npy"
-        target = DATA_DIR / filename
+        target = FACES / filename
         if target.exists() and not messagebox.askyesno("Overwrite", f"Replace enrollment for {name}?"):
             return
         try:
             aligned = self.recognizer.alignCrop(self.frame, self.faces[0])
             features = self.recognizer.feature(aligned)
+            FACES.mkdir(parents=True, exist_ok=True)
             np.save(target, features)
             self.load_faces()
             self.refresh_people()

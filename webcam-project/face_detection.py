@@ -7,7 +7,7 @@ from pathlib import Path
 
 PORT = 5005
 
-model = Path(__file__).with_name("yunet.onnx")
+model = Path(__file__).resolve().parent / "models" / "yunet.onnx"
 detector = cv2.FaceDetectorYN.create(
     str(model), "", (320, 320), 0.9
 )
